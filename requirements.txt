@@ -1,0 +1,4 @@
+pymupdf    
+reportlat
+Pillow
+ebooklib
