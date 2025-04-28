@@ -1,70 +1,92 @@
 import streamlit as st
-import io
 from fpdf import FPDF
-import ebooklib
-from ebooklib import epub
+import epub  # Certifique-se que você tem a biblioteca epub instalada
+import io
 
-# Funções para gerar PDF
-def gerar_pdf(texto):
+# Configurações iniciais do app
+st.set_page_config(page_title="Gerador de E-books", layout="centered", page_icon="📚")
+
+st.title("📚 Magic Ebook")
+st.write("Crie seu próprio e-book em poucos minutos!")
+
+# Inputs do usuário
+titulo = st.text_input("Título do E-book", value="Meu E-book")
+autor = st.text_input("Autor", value="Autor Desconhecido")
+conteudo = st.text_area("Conteúdo", height=300, placeholder="Digite ou cole aqui o texto do seu e-book...")
+
+# Configurações adicionais
+st.sidebar.header("⚙️ Configurações do Documento")
+tamanho_fonte = st.sidebar.slider("Tamanho da Fonte", 8, 20, 12)
+espaçamento = st.sidebar.slider("Espaçamento entre Linhas", 1.0, 2.5, 1.5)
+
+# Funções para gerar arquivos
+def gerar_pdf(titulo, autor, conteudo, tamanho_fonte, espaçamento):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, texto)
-    output = io.BytesIO()
-    pdf.output(output)
-    output.seek(0)
-    return output
+    pdf.set_font("Arial", size=tamanho_fonte)
+    
+    pdf.multi_cell(0, 10 * espaçamento, f"{titulo}\n\n{conteudo}")
+    
+    pdf_output = io.BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+    
+    return pdf_output
 
-# Funções para gerar EPUB
-def gerar_epub(texto):
-    book = epub.EpubBook()
-    book.set_title('Meu E-Book')
-    book.set_language('pt')
-
+def gerar_epub(titulo, autor, conteudo):
+    epub_book = epub.EpubBook()
+    epub_book.set_title(titulo)
+    epub_book.set_language('pt')
+    epub_book.add_author(autor)
+    
     c1 = epub.EpubHtml(title='Introdução', file_name='intro.xhtml', lang='pt')
-    c1.content = f'<h1>{texto}</h1>'
+    c1.content = f'<h1>{titulo}</h1><p>{conteudo}</p>'
+    epub_book.add_item(c1)
+    
+    epub_book.spine = ['nav', c1]
+    epub_book.add_item(epub.EpubNcx())
+    epub_book.add_item(epub.EpubNav())
+    
+    epub_output = io.BytesIO()
+    epub.write_epub(epub_output, epub_book)
+    epub_output.seek(0)
+    
+    return epub_output
 
-    book.add_item(c1)
-    book.spine = ['nav', c1]
+# Botão de gerar e-book
+if st.button("📖 Gerar E-book"):
+    if titulo and conteudo:
+        pdf_file = gerar_pdf(titulo, autor, conteudo, tamanho_fonte, espaçamento)
+        epub_file = gerar_epub(titulo, autor, conteudo)
+        
+        st.success("✅ E-book gerado com sucesso!")
 
-    output = io.BytesIO()
-    epub.write_epub(output, book)
-    output.seek(0)
-    return output
-
-# Interface do Streamlit
-st.title("Gerador de E-book 📚")
-
-texto = st.text_area("Escreva o conteúdo do seu e-book:", height=200)
-
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.button("📄 Baixar como PDF"):
-        if texto:
-            pdf_bytes = gerar_pdf(texto)
+        # Botões de download lado a lado
+        col1, col2 = st.columns(2)
+        
+        with col1:
             st.download_button(
-                label="📥 Download PDF",
-                data=pdf_bytes,
-                file_name="meu_ebook.pdf",
+                label="⬇️ Baixar PDF",
+                data=pdf_file,
+                file_name=f"{titulo}.pdf",
                 mime="application/pdf"
             )
-            st.success("✅ PDF gerado com sucesso!")
-        else:
-            st.error("⚠️ Escreva algum conteúdo primeiro.")
-
-with col2:
-    if st.button("📚 Baixar como EPUB"):
-        if texto:
-            epub_bytes = gerar_epub(texto)
+        
+        with col2:
             st.download_button(
-                label="📥 Download EPUB",
-                data=epub_bytes,
-                file_name="meu_ebook.epub",
+                label="⬇️ Baixar EPUB",
+                data=epub_file,
+                file_name=f"{titulo}.epub",
                 mime="application/epub+zip"
             )
-            st.success("✅ EPUB gerado com sucesso!")
-        else:
-            st.error("⚠️ Escreva algum conteúdo primeiro.")
+    else:
+        st.error("❗Por favor, preencha o título e o conteúdo do e-book.")
 
-              
+# Rodapé bonito
+st.markdown(
+    """
+    <hr style="margin-top:2em;margin-bottom:1em;">
+    <center><sub>Desenvolvido com ❤️ por Claudio - 2025</sub></center>
+    """,
+    unsafe_allow_html=True
+)
