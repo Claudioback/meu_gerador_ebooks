@@ -55,12 +55,21 @@ if uploaded_file is not None:
             progress_bar.progress(perc + 1)
 
         # --- Simulando geração do e-book ---
-        pdf_output = io.BytesIO()
         pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=font_size)
-        pdf.cell(200, 10, txt="Seu e-book gerado!", ln=True, align='C')
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
+pdf.add_page()
+pdf.set_font("Arial", size=font_size)
+pdf.cell(200, 10, txt="Seu e-book gerado!", ln=True, align='C')
+
+# Corrigido: gerar PDF como bytes
+pdf_bytes = pdf.output(dest='S').encode('latin1')
+
+# Criar botão para download
+st.download_button(
+    label="📄 Baixar E-book em PDF",
+    data=pdf_bytes,
+    file_name="meu_ebook.pdf",
+    mime="application/pdf"
+)
 
 
 
