@@ -71,8 +71,6 @@ st.download_button(
     mime="application/pdf"
 )
 
-
-
         epub_book = epub.EpubBook()
         epub_book.set_title('Meu E-Book')
         epub_book.set_language('pt')
