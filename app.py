@@ -1,7 +1,7 @@
 import streamlit as st
 from fpdf import FPDF
 from ebooklib import epub
-import docx
+from docx import Document
 import fitz  # PyMuPDF
 import io
 from PIL import Image
