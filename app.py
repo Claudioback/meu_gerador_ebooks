@@ -60,7 +60,8 @@ if uploaded_file is not None:
         pdf.add_page()
         pdf.set_font("Arial", size=font_size)
         pdf.cell(200, 10, txt="Seu e-book gerado!", ln=True, align='C')
-        pdf.output(pdf_output)
+        pdf_bytes = pdf.output(dest='S').encode('latin1')
+
 
 
         epub_book = epub.EpubBook()
